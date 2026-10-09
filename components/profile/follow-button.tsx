@@ -15,11 +15,14 @@ export function FollowButton({ username, initialFollowing }: { username: string;
       variant={following ? 'secondary' : 'primary'}
       loading={loading}
       onClick={async () => {
+        const nextState = !following;
+        setFollowing(nextState);
         setLoading(true);
         try {
-          await api(`/api/followers/${username}`, { method: following ? 'DELETE' : 'POST' });
-          setFollowing(!following);
+          await api(`/api/followers/${username}`, { method: nextState ? 'POST' : 'DELETE' });
           router.refresh();
+        } catch {
+          setFollowing(!nextState); // rollback on error
         } finally {
           setLoading(false);
         }

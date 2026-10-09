@@ -105,7 +105,7 @@ export async function updateProfile(userId: string, input: z.infer<typeof profil
 
 export async function follow(followerId: string, username: string) {
   const target = await prisma.user.findUnique({ where: { username: username.toLowerCase() } });
-  if (!target || target.role === 'OWNER' || target.disabled) throw new AppError('NOT_FOUND', 'Pengguna tidak ditemukan.');
+  if (!target || target.disabled) throw new AppError('NOT_FOUND', 'Pengguna tidak ditemukan.');
   if (target.id === followerId) throw new AppError('VALIDATION_ERROR', 'Kamu tidak bisa mengikuti diri sendiri.');
   await prisma.follow.upsert({
     where: { followerId_followingId: { followerId, followingId: target.id } },
