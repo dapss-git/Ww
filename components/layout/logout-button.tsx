@@ -13,6 +13,7 @@ export function LogoutButton({ endpoint = '/api/auth/logout', redirectTo = '/' }
     <Button
       variant="ghost"
       size="sm"
+      className="w-full sm:w-auto justify-center text-crimson-soft hover:bg-crimson/15 border border-crimson/20 sm:border-transparent"
       loading={loading}
       onClick={async () => {
         setLoading(true);
