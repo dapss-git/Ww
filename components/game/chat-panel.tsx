@@ -29,8 +29,20 @@ export function ChatPanel({ view, messages, onSent }: Props) {
   // optimistic sending
   const bottom = useRef<HTMLDivElement>(null);
 
+  const [optimisticMsgs, setOptimisticMsgs] = useState<ChatMessageView[]>([]);
   const current = channels.includes(active) ? active : (channels[0] ?? 'PUBLIC');
-  const list = useMemo(() => messages.filter((m) => m.channel === current), [messages, current]);
+
+  // Gabungkan pesan server dengan pesan lokal instan yang baru dikirim
+  const list = useMemo(() => {
+    const combined = [...messages];
+    for (const opt of optimisticMsgs) {
+      if (!combined.some((m) => m.id === opt.id)) {
+        combined.push(opt);
+      }
+    }
+    return combined.filter((m) => m.channel === current);
+  }, [messages, optimisticMsgs, current]);
+
   const canSend = view.viewer.canSend.includes(current);
 
   useEffect(() => {
@@ -43,11 +55,27 @@ export function ChatPanel({ view, messages, onSent }: Props) {
     if (!content || !canSend) return;
     setText('');
     setError(null);
+
+    // Langsung munculkan pesan seketika (0 ms delay)
+    const myPlayer = view.players.find((p) => p.isYou);
+    const tempMsg: ChatMessageView = {
+      id: `opt-${Date.now()}`,
+      channel: current,
+      username: myPlayer?.username ?? 'Kamu',
+      userId: myPlayer?.userId ?? view.viewer.id,
+      content,
+      system: false,
+      createdAt: Date.now(),
+    };
+    setOptimisticMsgs((prev) => [...prev, tempMsg]);
+
     try {
       await api('/api/chat', { method: 'POST', json: { gameId: view.game.id, channel: current, content } });
       onSent();
     } catch (err) {
-      setText(content); // restore if failed
+      // Hapus jika gagal dan kembalikan teks
+      setOptimisticMsgs((prev) => prev.filter((m) => m.id !== tempMsg.id));
+      setText(content);
       setError(err instanceof ApiClientError ? err.message : 'Gagal mengirim pesan.');
     }
   }

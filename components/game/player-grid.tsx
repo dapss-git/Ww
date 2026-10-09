@@ -27,28 +27,37 @@ export function PlayerGrid({ view, selectable, selected = [], onSelect }: Props)
         const cardContent = (
           <div
             className={cn(
-              'relative flex flex-col items-center justify-between rounded-2xl p-2.5 text-center transition-all duration-200 aspect-square select-none overflow-hidden backdrop-blur-md',
+              'relative flex flex-col items-center justify-between rounded-2xl p-2 sm:p-2.5 text-center transition-all duration-200 aspect-square select-none overflow-hidden backdrop-blur-md',
               dead
-                ? 'bg-black/60 border border-crimson/30 grayscale contrast-125'
+                ? 'bg-gradient-to-b from-stone-950/90 via-black/95 to-stone-950/90 border border-stone-700/60 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]'
                 : 'bg-white/5 border border-white/10 hover:border-gold/50 hover:bg-white/10 shadow-lg',
               p.isYou && !dead && 'ring-2 ring-gold/70 border-gold/40 bg-gold/5 shadow-[0_0_15px_rgba(201,164,92,0.2)]',
               isSel && 'ring-2 ring-crimson border-crimson bg-crimson/15 shadow-[0_0_20px_rgba(225,29,72,0.4)]',
               canPick && 'cursor-pointer hover:scale-105 active:scale-95'
             )}
           >
-            {/* RIP Tombstone Watermark / Graphic for Dead Players */}
+            {/* Realistis Gothic Tombstone Overlay untuk Pemain Mati */}
             {dead && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/75 p-1 backdrop-blur-[2px]">
-                <div className="relative flex flex-col items-center">
-                  <div className="w-10 h-12 border-2 border-stone-500 rounded-t-full bg-stone-800/90 flex flex-col items-center justify-center shadow-lg">
-                    <span className="font-serif font-black tracking-widest text-[11px] text-stone-300">R.I.P</span>
-                    <Skull className="h-3.5 w-3.5 text-crimson-soft opacity-80 mt-0.5" />
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-2 bg-black/85 backdrop-blur-[3px]">
+                {/* Bentuk Batu Nisan Melengkung Klasik Berukir */}
+                <div className="relative flex flex-col items-center justify-center w-full max-w-[90px] py-1.5 px-1 rounded-t-3xl rounded-b-md border-2 border-stone-600/80 bg-gradient-to-b from-stone-700/70 via-stone-800/80 to-stone-900/90 shadow-[0_4px_12px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.2)]">
+                  <div className="flex items-center gap-1">
+                    <span className="font-serif font-black tracking-widest text-[12px] sm:text-xs text-stone-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                      R.I.P
+                    </span>
+                    <Skull className="h-3 w-3 text-crimson-soft opacity-90" />
                   </div>
-                  <span className="mt-1 text-[10px] font-semibold text-stone-400 uppercase tracking-tighter truncate max-w-[80px]">
-                    {p.username}
-                  </span>
+                  {/* Garis Pembatas Ukiran Batu */}
+                  <div className="w-10 h-0.5 bg-stone-500/50 my-1 rounded-full" />
+                  <Link
+                    href={`/profile/${p.username}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-medium text-[10px] sm:text-[11px] text-stone-300 hover:text-gold-soft hover:underline truncate max-w-[80px] block"
+                  >
+                    @{p.username}
+                  </Link>
                   {p.deathReason && (
-                    <span className="text-[8px] text-crimson-soft/90 max-w-[75px] truncate">
+                    <span className="text-[8px] text-crimson-soft/90 truncate max-w-[75px] mt-0.5">
                       {p.deathReason}
                     </span>
                   )}
