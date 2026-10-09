@@ -126,13 +126,14 @@ export function OwnerDashboard({ ownerName }: { ownerName: string }) {
       </header>
 
       {(error || msg) && (
-        <div role="alert" className={`rounded-xl border p-4 text-sm ${msg?.includes('berhasil') || msg?.includes('Aktif') ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300' : 'border-crimson/50 bg-crimson/10 text-crimson-soft'}`}>
-          <div className="flex items-center justify-between gap-3">
+        <div role="alert" className={`rounded-xl border p-4 text-sm ${msg?.includes('berhasil') || msg?.includes('siap') ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300' : 'border-crimson/50 bg-crimson/10 text-crimson-soft'}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span>{msg ?? error?.message}</span>
             {testResult && (
               <div className="flex gap-2">
-                <Link href={`/room/${testResult.roomCode}`} className="font-bold underline text-gold-soft hover:text-ink">Masuk Room</Link>
-                <Link href={`/game/${testResult.gameId}`} className="font-bold underline text-emerald-400 hover:text-ink">Mainkan Game Langsung</Link>
+                <Link href={`/room/${testResult.roomCode}`} className="px-3 py-1.5 rounded-lg bg-gold text-night font-bold shadow-glow text-xs flex items-center gap-1">
+                  Masuk Room & Mulai Game ➜
+                </Link>
               </div>
             )}
           </div>

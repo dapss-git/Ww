@@ -3,7 +3,6 @@ import { ok } from '@/lib/api/response';
 import { route } from '@/lib/api/handler';
 import { requireOwner } from '@/lib/auth/guards';
 import { createRoom } from '@/lib/rooms/service';
-import { startGame } from '@/lib/game/service';
 import { hashPassword } from '@/lib/auth/password';
 import { randomString } from '@/lib/security/random';
 import { createSession } from '@/lib/auth/session';
@@ -13,10 +12,10 @@ const ALPHANUM = 'abcdefghijklmnopqrstuvwxyz0123456789';
 export const POST = route(async () => {
   const owner = await requireOwner();
 
-  // Pastikan owner juga memiliki cookie session USER aktif agar bisa langsung join & bermain di UI
+  // Pastikan owner memiliki cookie session USER aktif agar bisa langsung join & bermain di UI
   await createSession(owner.id, 'USER', true);
 
-  // 1. Buat room test khusus
+  // 1. Buat room test khusus (min 4 pemain, max 6 pemain)
   const created = await createRoom(owner.id, {
     minPlayers: 4,
     maxPlayers: 6,
@@ -27,7 +26,7 @@ export const POST = route(async () => {
 
   const room = await prisma.room.findUniqueOrThrow({ where: { code: created.code } });
 
-  // 2. Buat 3 akun dummy bot untuk melengkapi room
+  // 2. Buat 3 akun dummy bot untuk melengkapi room dan set bot sudah siap (ready)
   const botNames = ['Bot_Alpha', 'Bot_Bravo', 'Bot_Charlie'];
   const botUsers = [];
   const dummyPass = await hashPassword('BotPassword123!');
@@ -43,7 +42,7 @@ export const POST = route(async () => {
     });
     botUsers.push(bot);
 
-    // Join room & set ready
+    // Bot bergabung ke room & langsung status READY
     await prisma.roomPlayer.create({
       data: {
         roomId: room.id,
@@ -53,20 +52,12 @@ export const POST = route(async () => {
     });
   }
 
-  // Set owner ready
-  await prisma.roomPlayer.update({
-    where: { roomId_userId: { roomId: room.id, userId: owner.id } },
-    data: { ready: true },
-  });
-
-  // 3. Mulai game
-  const game = await startGame(owner.id, room.id);
-
+  // Owner masuk sebagai HOST dan TIDAK otomatis mulai
+  // Tombol "Mulai Game" ada di tangan Host (Owner) di dalam room!
   return ok({
     success: true,
-    message: 'Test mode aktif! Room & Bot berhasil dimulai. Kamu sekarang masuk sebagai host.',
+    message: 'Room tes berhasil dibuat! 3 Bot sudah masuk dan status SIAP. Silakan klik "Masuk ke Room" lalu tekan tombol "Mulai Game" kapan saja.',
     roomCode: room.code,
-    gameId: game.gameId,
     botCount: botUsers.length,
   });
 });
