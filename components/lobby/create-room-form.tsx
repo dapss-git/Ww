@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiClientError } from '@/lib/client/api';
-import { Sparkles, Globe, Lock, Shield, Moon, Check } from 'lucide-react';
+import { Globe, Lock, Shield, Moon, Check } from 'lucide-react';
 
 export function CreateRoomForm() {
   const router = useRouter();

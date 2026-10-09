@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { Eye, Moon, Skull, Sun, Users, Volume2, VolumeX, AlertOctagon, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button, LinkButton } from '@/components/ui/button';
+import { LinkButton } from '@/components/ui/button';
 import { useCountdown } from '@/hooks/use-countdown';
 import { useGame } from '@/hooks/use-game';
 import { PHASE_LABEL, TEAM_LABEL, WIN_LABEL } from '@/lib/game/labels';
@@ -113,7 +113,7 @@ function Header({
 function RoleCard({ view }: { view: GameView }) {
   if (!view.viewer.role) return null;
   const role = ROLES[view.viewer.role];
-  const reveal = view.game.phase === 'ROLE_REVEAL' || view.game.phase === 'STARTING';
+  
   return (
     <section className={cn('panel p-4 border border-gold/30 bg-surface/80 shadow-glow transition-all')}>
       <div className="flex flex-wrap items-center justify-between gap-2">

@@ -26,7 +26,7 @@ export function ChatPanel({ view, messages, onSent }: Props) {
   const [active, setActive] = useState<ChatChannelId>(channels[0] ?? 'PUBLIC');
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
+  // optimistic sending
   const bottom = useRef<HTMLDivElement>(null);
 
   const current = channels.includes(active) ? active : (channels[0] ?? 'PUBLIC');
@@ -96,7 +96,7 @@ export function ChatPanel({ view, messages, onSent }: Props) {
             maxLength={300}
             aria-label="Pesan"
           />
-          <Button type="submit" disabled={!canSend || !text.trim()} loading={sending} aria-label="Kirim">
+          <Button type="submit" disabled={!canSend || !text.trim()}  aria-label="Kirim">
             <Send className="h-4 w-4" />
           </Button>
         </div>

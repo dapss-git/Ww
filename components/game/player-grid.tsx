@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, Skull, Check, Sparkles } from 'lucide-react';
+import { Heart, Skull, Check } from 'lucide-react';
 import { ROLES } from '@/lib/roles/registry';
 import { cn } from '@/lib/utils';
 import type { GameView } from '@/types/game';

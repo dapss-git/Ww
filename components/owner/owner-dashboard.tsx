@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Activity, Database, Radio, Search, Bot, Bug, ExternalLink, ShieldCheck, UserPlus, Trash2, UserX, Check } from 'lucide-react';
+import { Activity, Database, Radio, Search, Bot, Bug, ExternalLink, ShieldCheck, UserPlus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LogoutButton } from '@/components/layout/logout-button';
