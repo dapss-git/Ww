@@ -45,7 +45,7 @@ export interface ProfileData {
 /** Statistik dihitung di database (count/groupBy), bukan di browser. */
 export async function getProfile(username: string, viewerId: string | null): Promise<ProfileData> {
   const user = await prisma.user.findUnique({ where: { username: username.toLowerCase() } });
-  if (!user || user.role === 'OWNER') throw new AppError('NOT_FOUND', 'Pengguna tidak ditemukan.');
+  if (!user) throw new AppError('NOT_FOUND', 'Pengguna tidak ditemukan.');
 
   const [followers, following, total, wins, played, won, history, follow] = await Promise.all([
     prisma.follow.count({ where: { followingId: user.id } }),
