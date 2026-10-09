@@ -1,0 +1,355 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum AccountRole {
+  USER
+  OWNER
+}
+
+enum SessionKind {
+  USER
+  OWNER
+}
+
+enum Team {
+  VILLAGE
+  WEREWOLF
+  SOLO
+  NEUTRAL
+}
+
+enum PlayerStatus {
+  ALIVE
+  DEAD
+  DISCONNECTED
+  SPECTATOR
+}
+
+enum RoleType {
+  WEREWOLF
+  VILLAGER
+  GUARDIAN
+  WITCH
+  SEER
+  HUNTER
+  CUPID
+  DOCTOR
+  SERIAL_KILLER
+  ARSONIST
+  TRACKER
+  MEDIUM
+}
+
+enum ChatChannel {
+  PUBLIC
+  WEREWOLF
+  ROLE
+  SPECTATOR
+}
+
+enum RoomStatus {
+  WAITING
+  STARTING
+  IN_PROGRESS
+  FINISHED
+  CLOSED
+}
+
+enum RoomVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum GamePhase {
+  WAITING
+  STARTING
+  ROLE_REVEAL
+  DAY
+  DISCUSSION
+  VOTING
+  NIGHT
+  ROLE_ACTION
+  RESULT
+  FINISHED
+}
+
+enum GameActionType {
+  ATTACK
+  PROTECT
+  HEAL
+  POISON
+  INSPECT
+  TRACK
+  LINK
+  KILL
+  DOUSE
+  IGNITE
+  REVENGE_KILL
+}
+
+model User {
+  id           String      @id @default(cuid())
+  username     String      @unique
+  passwordHash String
+  role         AccountRole @default(USER)
+  disabled     Boolean     @default(false)
+  bio          String      @default("")
+  avatarUrl    String?
+  bannerUrl    String?
+  createdAt    DateTime    @default(now())
+  lastSeenAt   DateTime?
+
+  sessions       Session[]
+  hostedRooms    Room[]          @relation("RoomHost")
+  roomPlayers    RoomPlayer[]
+  roomSpectators RoomSpectator[]
+  gamePlayers    GamePlayer[]
+  chatMessages   ChatMessage[]
+  matchPlayers   MatchPlayer[]
+  followers      Follow[]        @relation("FollowTarget")
+  following      Follow[]        @relation("FollowSource")
+  auditLogs      OwnerAuditLog[]
+
+  @@index([createdAt])
+  @@index([lastSeenAt])
+}
+
+model Session {
+  id         String      @id @default(cuid())
+  tokenHash  String      @unique
+  userId     String
+  kind       SessionKind @default(USER)
+  createdAt  DateTime    @default(now())
+  expiresAt  DateTime
+  lastUsedAt DateTime    @default(now())
+  revokedAt  DateTime?
+  userAgent  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Room {
+  id              String         @id @default(cuid())
+  code            String         @unique
+  hostId          String
+  minPlayers      Int
+  maxPlayers      Int
+  gameMode        String         @default("CLASSIC")
+  visibility      RoomVisibility @default(PUBLIC)
+  allowSpectators Boolean        @default(true)
+  status          RoomStatus     @default(WAITING)
+  hasStarted      Boolean        @default(false)
+  roleConfig      Json
+  settings        Json
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  finishedAt      DateTime?
+
+  host       User            @relation("RoomHost", fields: [hostId], references: [id])
+  players    RoomPlayer[]
+  spectators RoomSpectator[]
+  game       Game?
+
+  @@index([status, visibility])
+  @@index([updatedAt])
+  @@index([hostId])
+}
+
+model RoomPlayer {
+  id       String   @id @default(cuid())
+  roomId   String
+  userId   String
+  ready    Boolean  @default(false)
+  joinedAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([userId])
+}
+
+model RoomSpectator {
+  id       String   @id @default(cuid())
+  roomId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([userId])
+}
+
+model Game {
+  id             String    @id @default(cuid())
+  roomId         String    @unique
+  phase          GamePhase @default(STARTING)
+  round          Int       @default(0)
+  voteRound      Int       @default(1)
+  phaseStartedAt DateTime  @default(now())
+  phaseEndsAt    DateTime
+  phaseVersion   Int       @default(0)
+  winnerTeam     Team?
+  state          Json
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+
+  room     Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  players  GamePlayer[]
+  actions  GameAction[]
+  messages ChatMessage[]
+  votes    Vote[]
+
+  @@index([phase, phaseEndsAt])
+}
+
+model GamePlayer {
+  id          String       @id @default(cuid())
+  gameId      String
+  userId      String
+  role        RoleType
+  team        Team
+  status      PlayerStatus @default(ALIVE)
+  seat        Int
+  usesLeft    Json
+  memory      Json
+  deathReason String?
+  deathRound  Int?
+
+  game    Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id])
+  actions GameAction[]
+
+  @@unique([gameId, userId])
+  @@unique([gameId, seat])
+  @@index([userId])
+}
+
+model GameAction {
+  id        String         @id @default(cuid())
+  gameId    String
+  round     Int
+  actorId   String
+  type      GameActionType
+  targetId  String?
+  target2Id String?
+  createdAt DateTime       @default(now())
+
+  game  Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  actor GamePlayer @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, round, actorId, type])
+  @@index([gameId, round])
+}
+
+model ChatMessage {
+  id          String      @id @default(cuid())
+  gameId      String
+  userId      String?
+  channel     ChatChannel
+  audienceKey String?
+  content     String
+  system      Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  game Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([gameId, channel, createdAt])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  gameId    String
+  round     Int
+  voteRound Int      @default(1)
+  voterId   String
+  targetId  String
+  createdAt DateTime @default(now())
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, round, voteRound, voterId])
+  @@index([gameId, round, voteRound])
+}
+
+// Match disimpan tanpa FK ke Game/Room agar riwayat tidak ikut terhapus saat room dihapus.
+model Match {
+  id          String   @id @default(cuid())
+  gameId      String?  @unique
+  roomCode    String
+  gameMode    String
+  winnerTeam  Team
+  winnerLabel String
+  playerCount Int
+  rounds      Int
+  startedAt   DateTime
+  endedAt     DateTime
+
+  players MatchPlayer[]
+
+  @@index([endedAt])
+}
+
+model MatchPlayer {
+  id       String   @id @default(cuid())
+  matchId  String
+  userId   String
+  role     RoleType
+  team     Team
+  won      Boolean
+  survived Boolean
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([matchId, userId])
+  @@index([userId])
+  @@index([userId, role])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("FollowSource", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("FollowTarget", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+model OwnerAuditLog {
+  id         String   @id @default(cuid())
+  ownerId    String
+  action     String
+  targetType String?
+  targetId   String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id])
+
+  @@index([createdAt])
+  @@index([ownerId])
+}
+
+model RateLimit {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+}
