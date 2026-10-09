@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiClientError } from '@/lib/client/api';
-import { User, LogIn, UserPlus } from 'lucide-react';
+import { User, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 interface Props {
   mode: 'login' | 'register' | 'owner';
@@ -17,6 +17,8 @@ export function AuthForm({ mode }: Props) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [remember, setRemember] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [isGuestMode, setIsGuestMode] = useState(false);
@@ -115,19 +117,61 @@ export function AuthForm({ mode }: Props) {
               <input id="username" className="input" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} required maxLength={40} />
               {mode === 'register' && <p className="text-xs text-mute">3-20 karakter: huruf kecil, angka, underscore.</p>}
             </div>
+            
+            {/* Password input with Show/Hide toggle */}
             <div className="space-y-1.5">
               <label htmlFor="password" className="text-sm text-mute">Password</label>
-              <input id="password" type="password" className="input" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} required maxLength={128} />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="input pr-10"
+                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  maxLength={128}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-mute hover:text-ink transition"
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {mode === 'register' && <p className="text-xs text-mute">Minimal 8 karakter dengan huruf besar, huruf kecil, dan angka.</p>}
             </div>
+
+            {/* Confirm Password input with Show/Hide toggle */}
             {mode === 'register' && (
               <div className="space-y-1.5">
                 <label htmlFor="confirm" className="text-sm text-mute">Konfirmasi password</label>
-                <input id="confirm" type="password" className="input" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+                <div className="relative">
+                  <input
+                    id="confirm"
+                    type={showConfirm ? 'text' : 'password'}
+                    className="input pr-10"
+                    autoComplete="new-password"
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-mute hover:text-ink transition"
+                    aria-label={showConfirm ? 'Sembunyikan konfirmasi password' : 'Lihat konfirmasi password'}
+                  >
+                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             )}
+
             {mode !== 'register' && (
-              <label className="flex items-center gap-2 text-sm text-mute">
+              <label className="flex items-center gap-2 text-sm text-mute cursor-pointer select-none">
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="h-4 w-4 accent-[#C9A45C]" />
                 Ingat saya
               </label>

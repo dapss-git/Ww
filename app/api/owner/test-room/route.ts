@@ -6,11 +6,15 @@ import { createRoom } from '@/lib/rooms/service';
 import { startGame } from '@/lib/game/service';
 import { hashPassword } from '@/lib/auth/password';
 import { randomString } from '@/lib/security/random';
+import { createSession } from '@/lib/auth/session';
 
 const ALPHANUM = 'abcdefghijklmnopqrstuvwxyz0123456789';
 
 export const POST = route(async () => {
   const owner = await requireOwner();
+
+  // Pastikan owner juga memiliki cookie session USER aktif agar bisa langsung join & bermain di UI
+  await createSession(owner.id, 'USER', true);
 
   // 1. Buat room test khusus
   const created = await createRoom(owner.id, {
@@ -55,12 +59,12 @@ export const POST = route(async () => {
     data: { ready: true },
   });
 
-  // 3. Langsung mulai game untuk verifikasi engine
+  // 3. Mulai game
   const game = await startGame(owner.id, room.id);
 
   return ok({
     success: true,
-    message: 'Test mode aktif! Room & Bot berhasil disimulasikan.',
+    message: 'Test mode aktif! Room & Bot berhasil dimulai. Kamu sekarang masuk sebagai host.',
     roomCode: room.code,
     gameId: game.gameId,
     botCount: botUsers.length,

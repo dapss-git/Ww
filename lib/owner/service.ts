@@ -83,6 +83,15 @@ export async function setUserDisabled(ownerId: string, userId: string, disabled:
   await audit(ownerId, disabled ? 'USER_DISABLED' : 'USER_ENABLED', 'User', userId, { username: user.username });
 }
 
+export async function deleteUser(ownerId: string, userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError('NOT_FOUND', 'Pengguna tidak ditemukan.');
+  if (user.role === 'OWNER') throw new AppError('FORBIDDEN', 'Akun owner tidak bisa dihapus.');
+  await revokeAllSessions(userId);
+  await prisma.user.delete({ where: { id: userId } });
+  await audit(ownerId, 'USER_DELETED', 'User', userId, { username: user.username });
+}
+
 export async function endRoom(ownerId: string, roomId: string) {
   const room = await prisma.room.findUnique({ where: { id: roomId }, include: { game: true } });
   if (!room) throw new AppError('NOT_FOUND', 'Room tidak ditemukan.');

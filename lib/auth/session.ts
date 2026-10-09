@@ -72,7 +72,7 @@ async function loadSession(kind: SessionKind): Promise<SessionUser | null> {
   const { user } = session;
   if (user.disabled) return null;
   if (kind === 'OWNER' && user.role !== 'OWNER') return null;
-  if (kind === 'USER' && user.role !== 'USER') return null;
+  if (kind === 'USER' && user.role !== 'USER' && user.role !== 'OWNER') return null;
   if (!user.lastSeenAt || now.getTime() - user.lastSeenAt.getTime() > 60_000) {
     void prisma.user.update({ where: { id: user.id }, data: { lastSeenAt: now } }).catch(() => undefined);
   }

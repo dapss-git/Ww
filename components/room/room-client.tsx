@@ -231,11 +231,61 @@ function ConfigEditor({ room, onDone }: { room: RoomDetail; onDone: () => void }
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <label className="space-y-1 text-sm text-mute">Minimum<input type="number" className="input" min={4} max={20} value={min} onChange={(e) => setMin(Number(e.target.value))} /></label>
-        <label className="space-y-1 text-sm text-mute">Maksimum<input type="number" className="input" min={4} max={20} value={max} onChange={(e) => { const v = Math.max(4, Math.min(20, Number(e.target.value) || 4)); setMax(v); setRoles(defaultRoleConfig(v)); }} /></label>
-        <label className="space-y-1 text-sm text-mute">Mode<select className="input" value={mode} onChange={(e) => setMode(e.target.value)}><option value="CLASSIC">Klasik</option><option value="MAJORITY">Mayoritas</option></select></label>
-        <label className="space-y-1 text-sm text-mute">Visibilitas<select className="input" value={visibility} onChange={(e) => setVisibility(e.target.value as 'PUBLIC' | 'PRIVATE')}><option value="PUBLIC">Publik</option><option value="PRIVATE">Privat</option></select></label>
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <label className="space-y-1 text-sm text-mute">Minimum Pemain<input type="number" className="input" min={4} max={20} value={min} onChange={(e) => setMin(Number(e.target.value))} /></label>
+          <label className="space-y-1 text-sm text-mute">Maksimum Pemain<input type="number" className="input" min={4} max={20} value={max} onChange={(e) => { const v = Math.max(4, Math.min(20, Number(e.target.value) || 4)); setMax(v); setRoles(defaultRoleConfig(v)); }} /></label>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <span className="text-xs text-mute font-medium">Mode Game</span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode('CLASSIC')}
+                className={`py-2 px-3 rounded-lg border text-xs font-medium transition ${
+                  mode === 'CLASSIC' ? 'border-gold bg-gold/20 text-gold-soft shadow-glow' : 'border-white/10 bg-night/60 text-mute hover:text-ink'
+                }`}
+              >
+                Klasik
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('MAJORITY')}
+                className={`py-2 px-3 rounded-lg border text-xs font-medium transition ${
+                  mode === 'MAJORITY' ? 'border-crimson bg-crimson/20 text-crimson-soft shadow-crimson' : 'border-white/10 bg-night/60 text-mute hover:text-ink'
+                }`}
+              >
+                Mayoritas
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-xs text-mute font-medium">Visibilitas Room</span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setVisibility('PUBLIC')}
+                className={`py-2 px-3 rounded-lg border text-xs font-medium transition ${
+                  visibility === 'PUBLIC' ? 'border-emerald-500/60 bg-emerald-500/15 text-emerald-300' : 'border-white/10 bg-night/60 text-mute hover:text-ink'
+                }`}
+              >
+                Publik
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility('PRIVATE')}
+                className={`py-2 px-3 rounded-lg border text-xs font-medium transition ${
+                  visibility === 'PRIVATE' ? 'border-purple/60 bg-purple/20 text-purple-soft' : 'border-white/10 bg-night/60 text-mute hover:text-ink'
+                }`}
+              >
+                Privat
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
       <p className="text-xs text-mute">Mengubah maksimum pemain mengatur ulang komposisi role ke default; sesuaikan lagi di bawah.</p>
       <div className="grid gap-2 text-sm text-mute sm:grid-cols-2">
