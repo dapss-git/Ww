@@ -103,6 +103,8 @@ model User {
   bio          String      @default("")
   avatarUrl    String?
   bannerUrl    String?
+  coins        Int         @default(100)
+  title        String      @default("Warga Pemula")
   createdAt    DateTime    @default(now())
   lastSeenAt   DateTime?
 
@@ -147,6 +149,7 @@ model Room {
   gameMode        String         @default("CLASSIC")
   visibility      RoomVisibility @default(PUBLIC)
   allowSpectators Boolean        @default(true)
+  roomKey         String?
   status          RoomStatus     @default(WAITING)
   hasStarted      Boolean        @default(false)
   roleConfig      Json

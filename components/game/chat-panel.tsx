@@ -41,16 +41,14 @@ export function ChatPanel({ view, messages, onSent }: Props) {
     e.preventDefault();
     const content = text.trim();
     if (!content || !canSend) return;
-    setSending(true);
+    setText('');
     setError(null);
     try {
       await api('/api/chat', { method: 'POST', json: { gameId: view.game.id, channel: current, content } });
-      setText('');
       onSent();
     } catch (err) {
+      setText(content); // restore if failed
       setError(err instanceof ApiClientError ? err.message : 'Gagal mengirim pesan.');
-    } finally {
-      setSending(false);
     }
   }
 

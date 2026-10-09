@@ -13,6 +13,7 @@ export function CreateRoomForm() {
   const [gameMode, setMode] = useState('CLASSIC');
   const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC');
   const [allowSpectators, setSpectators] = useState(true);
+  const [roomKey, setRoomKey] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +24,7 @@ export function CreateRoomForm() {
     try {
       const { code } = await api<{ code: string }>('/api/rooms', {
         method: 'POST',
-        json: { minPlayers, maxPlayers, gameMode, visibility, allowSpectators },
+        json: { minPlayers, maxPlayers, gameMode, visibility, allowSpectators, roomKey: visibility === 'PRIVATE' ? roomKey : undefined },
       });
       router.push(`/room/${code}`);
     } catch (err) {
@@ -37,7 +38,10 @@ export function CreateRoomForm() {
     }
   }
 
-  const num = (v: string) => Math.max(0, Math.floor(Number(v) || 0));
+  const parseNum = (v: string, fallback: number) => {
+    const n = parseInt(v, 10);
+    return isNaN(n) ? fallback : n;
+  };
 
   return (
     <form onSubmit={submit} className="space-y-5">
@@ -135,15 +139,58 @@ export function CreateRoomForm() {
         </div>
       </div>
 
+      {/* Kunci Room bila Privat */}
+      {visibility === 'PRIVATE' && (
+        <div className="space-y-1.5 rounded-xl border border-purple/30 bg-purple/10 p-3">
+          <label htmlFor="roomKey" className="text-sm font-medium text-purple-soft flex items-center gap-1.5">
+            <Lock className="h-4 w-4" /> Kunci / Password Masuk Room (Opsional)
+          </label>
+          <input
+            id="roomKey"
+            type="text"
+            className="input"
+            placeholder="Contoh: rahasia123 (kosongkan jika tanpa kunci)"
+            value={roomKey}
+            onChange={(e) => setRoomKey(e.target.value)}
+            maxLength={30}
+          />
+          <p className="text-xs text-mute">Pemain lain di lobby harus memasukkan kunci ini agar bisa bergabung.</p>
+        </div>
+      )}
+
       {/* Pengaturan Pemain */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label htmlFor="min" className="text-sm text-mute">Minimum Pemain</label>
-          <input id="min" type="number" min={4} max={20} className="input" value={minPlayers} onChange={(e) => setMin(num(e.target.value))} />
+          <label htmlFor="min" className="text-sm text-mute">Minimum Pemain (4 - 20)</label>
+          <input
+            id="min"
+            type="number"
+            min={4}
+            max={20}
+            className="input"
+            value={minPlayers}
+            onChange={(e) => {
+              const val = parseNum(e.target.value, 4);
+              setMin(val);
+              if (val > maxPlayers) setMax(val);
+            }}
+          />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="max" className="text-sm text-mute">Maksimum Pemain</label>
-          <input id="max" type="number" min={4} max={20} className="input" value={maxPlayers} onChange={(e) => setMax(num(e.target.value))} />
+          <label htmlFor="max" className="text-sm text-mute">Maksimum Pemain (4 - 20)</label>
+          <input
+            id="max"
+            type="number"
+            min={4}
+            max={20}
+            className="input"
+            value={maxPlayers}
+            onChange={(e) => {
+              const val = parseNum(e.target.value, 4);
+              setMax(val);
+              if (val < minPlayers) setMin(val);
+            }}
+          />
         </div>
       </div>
 

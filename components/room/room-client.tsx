@@ -233,8 +233,40 @@ function ConfigEditor({ room, onDone }: { room: RoomDetail; onDone: () => void }
     <div className="space-y-4">
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <label className="space-y-1 text-sm text-mute">Minimum Pemain<input type="number" className="input" min={4} max={20} value={min} onChange={(e) => setMin(Number(e.target.value))} /></label>
-          <label className="space-y-1 text-sm text-mute">Maksimum Pemain<input type="number" className="input" min={4} max={20} value={max} onChange={(e) => { const v = Math.max(4, Math.min(20, Number(e.target.value) || 4)); setMax(v); setRoles(defaultRoleConfig(v)); }} /></label>
+          <label className="space-y-1 text-sm text-mute">Minimum Pemain (4 - 20)
+            <input
+              type="number"
+              className="input"
+              min={4}
+              max={20}
+              value={min}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val)) {
+                  setMin(val);
+                  if (val > max) setMax(val);
+                }
+              }}
+            />
+          </label>
+          <label className="space-y-1 text-sm text-mute">Maksimum Pemain (4 - 20)
+            <input
+              type="number"
+              className="input"
+              min={4}
+              max={20}
+              value={max}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val)) {
+                  setMax(val);
+                  if (val >= 4 && val <= 20) {
+                    setRoles(defaultRoleConfig(val));
+                  }
+                }
+              }}
+            />
+          </label>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

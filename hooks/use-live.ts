@@ -20,6 +20,7 @@ export function useLive<T>(fetcher: () => Promise<T>, { channels = [], intervalM
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<ApiClientError | null>(null);
   const [loading, setLoading] = useState(true);
+  const hasLoadedOnce = useRef(false);
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
   const inflight = useRef(false);
@@ -42,6 +43,7 @@ export function useLive<T>(fetcher: () => Promise<T>, { channels = [], intervalM
       setError(e instanceof ApiClientError ? e : new ApiClientError('INTERNAL_ERROR', 'Gagal memuat data.'));
     } finally {
       inflight.current = false;
+      hasLoadedOnce.current = true;
       if (alive.current) setLoading(false);
       if (queued.current) {
         queued.current = false;

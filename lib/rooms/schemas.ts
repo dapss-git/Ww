@@ -18,6 +18,7 @@ export const createRoomSchema = z
     gameMode: z.enum(GAME_MODES).default('CLASSIC'),
     visibility: z.enum(['PUBLIC', 'PRIVATE']).default('PUBLIC'),
     allowSpectators: z.boolean().default(true),
+    roomKey: z.string().max(30).optional(),
     roleConfig: z.record(z.string(), z.number()).optional(),
     settings: roomSettingsSchema.optional(),
   })
@@ -30,6 +31,7 @@ export const updateRoomSchema = z
     gameMode: z.enum(GAME_MODES),
     visibility: z.enum(['PUBLIC', 'PRIVATE']),
     allowSpectators: z.boolean(),
+    roomKey: z.string().max(30).optional(),
     roleConfig: z.record(z.string(), z.number()),
     settings: roomSettingsSchema,
   })
@@ -37,3 +39,7 @@ export const updateRoomSchema = z
 
 export const readySchema = z.object({ ready: z.boolean() });
 export const kickSchema = z.object({ userId: z.string().min(1) });
+
+export const joinRoomSchema = z.object({
+  key: z.string().max(30).optional(),
+});

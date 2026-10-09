@@ -5,6 +5,8 @@ export interface LobbyRoom {
   code: string;
   host: string;
   gameMode: string;
+  visibility?: 'PUBLIC' | 'PRIVATE';
+  hasKey?: boolean;
   playerCount: number;
   maxPlayers: number;
   spectatorCount: number;
@@ -25,6 +27,7 @@ export interface RoomDetail {
   code: string;
   status: RoomStatusId;
   visibility: 'PUBLIC' | 'PRIVATE';
+  hasKey?: boolean;
   gameMode: string;
   minPlayers: number;
   maxPlayers: number;

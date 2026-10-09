@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { AppError } from '@/lib/api/response';
 import { getCurrentUser } from '@/lib/auth/session';
 import { WIN_LABEL } from '@/lib/game/labels';
+import { Award, Coins, Flame, Sparkles } from 'lucide-react';
 import type { RoleId } from '@/lib/game/constants';
 import { getProfile } from '@/lib/profile/service';
 import { ROLES, isRoleId } from '@/lib/roles/registry';
@@ -56,6 +57,69 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         </div>
 
         {profile.isSelf && <ProfileEditor bio={profile.bio} avatarUrl={profile.avatarUrl ?? ''} bannerUrl={profile.bannerUrl ?? ''} />}
+
+        {/* Gelar / Title & Koin */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="panel p-4 flex items-center gap-3 border-gold/30 bg-gold/5">
+            <div className="p-3 rounded-xl bg-gold/20 text-gold-soft">
+              <Award className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs text-mute">Gelar Kehormatan</p>
+              <p className="font-display text-lg text-gold-soft font-bold">
+                {s.wins >= 10 ? 'Pemenang Sejati' : s.wins >= 5 ? 'Penyintas Tangguh' : s.wins >= 1 ? 'Pemburu Ulung' : 'Warga Pemula'}
+              </p>
+            </div>
+          </div>
+
+          <div className="panel p-4 flex items-center gap-3 border-amber-500/30 bg-amber-500/5">
+            <div className="p-3 rounded-xl bg-amber-500/20 text-amber-400">
+              <Coins className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs text-mute">Pundi Koin Desa</p>
+              <p className="font-display text-lg text-amber-300 font-bold">
+                {100 + s.wins * 50 + s.totalGames * 10} Koin
+              </p>
+            </div>
+          </div>
+
+          <div className="panel p-4 flex items-center gap-3 border-purple/30 bg-purple/5">
+            <div className="p-3 rounded-xl bg-purple/20 text-purple-soft">
+              <Flame className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs text-mute">Status Keberanian</p>
+              <p className="font-display text-lg text-purple-soft font-bold">
+                Level {Math.floor(s.totalGames / 3) + 1}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Misi & Pencapaian */}
+        <section className="mt-6 panel p-5 border-white/10">
+          <h2 className="font-display text-lg text-ink mb-3 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-gold" /> Misi & Pencapaian
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className={`p-3 rounded-xl border ${s.wins >= 1 ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/5 bg-night/40 opacity-70'}`}>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-xs text-ink">Kemenangan Perdana</span>
+                <span className="text-[10px] font-bold text-emerald-400">{s.wins >= 1 ? 'SELESAI (+50 Koin)' : `${s.wins}/1`}</span>
+              </div>
+              <p className="text-[11px] text-mute mt-1">Menangkan minimal 1 pertandingan dalam mode apa pun.</p>
+            </div>
+
+            <div className={`p-3 rounded-xl border ${s.wins >= 5 ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/5 bg-night/40 opacity-70'}`}>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-xs text-ink">Gelar: Pemenang Sejati</span>
+                <span className="text-[10px] font-bold text-gold-soft">{s.wins >= 10 ? 'SELESAI (+500 Koin)' : `${s.wins}/10 Win`}</span>
+              </div>
+              <p className="text-[11px] text-mute mt-1">Raih 10 kemenangan untuk mengklaim gelar 'Pemenang Sejati'.</p>
+            </div>
+          </div>
+        </section>
 
         <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[

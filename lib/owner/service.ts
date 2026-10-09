@@ -148,3 +148,17 @@ export async function listAudit() {
   const logs = await prisma.ownerAuditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 30, include: { owner: { select: { username: true } } } });
   return logs.map((l) => ({ id: l.id, owner: l.owner.username, action: l.action, targetType: l.targetType, targetId: l.targetId, createdAt: l.createdAt.getTime() }));
 }
+
+export async function deleteAllRooms(ownerId: string) {
+  const rooms = await prisma.room.findMany({ select: { id: true, code: true } });
+  for (const r of rooms) {
+    try {
+      await prisma.room.delete({ where: { id: r.id } });
+    } catch {
+      // ignore
+    }
+  }
+  await audit(ownerId, 'ALL_ROOMS_DELETED', 'System');
+  await emitAll([{ channel: LOBBY_CHANNEL, event: 'lobby:updated', payload: { at: Date.now() } }]);
+  return { deleted: rooms.length };
+}

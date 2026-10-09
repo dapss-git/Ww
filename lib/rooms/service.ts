@@ -59,6 +59,29 @@ function resolveRoleConfig(input: Record<string, number> | undefined, max: numbe
 
 export async function createRoom(userId: string, input: z.infer<typeof createRoomSchema>) {
   await assertNotInAnotherRoom(userId);
+
+  // Batasan kapasitas server:
+  // 1. Maksimal 5 room aktif (WAITING, STARTING, IN_PROGRESS) secara global
+  const activeCount = await prisma.room.count({ where: { status: { in: ACTIVE } } });
+  if (activeCount >= 5) {
+    throw new AppError('CONFLICT', 'Server sedang mencapai kapasitas maksimal (5 room aktif). Tunggu room lain selesai atau minta owner membersihkan room.');
+  }
+
+  // 2. Maksimal 10 room publik aktif
+  if (input.visibility === 'PUBLIC') {
+    const publicCount = await prisma.room.count({ where: { visibility: 'PUBLIC', status: { in: ACTIVE } } });
+    if (publicCount >= 10) {
+      throw new AppError('CONFLICT', 'Kapasitas room publik penuh (maks 10). Silakan buat room privat atau tunggu room selesai.');
+    }
+  }
+
+  // 3. Maksimal 25 room privat aktif
+  if (input.visibility === 'PRIVATE') {
+    const privateCount = await prisma.room.count({ where: { visibility: 'PRIVATE', status: { in: ACTIVE } } });
+    if (privateCount >= 25) {
+      throw new AppError('CONFLICT', 'Kapasitas room privat penuh (maks 25).');
+    }
+  }
   const roleConfig = resolveRoleConfig(input.roleConfig, input.maxPlayers);
   const settings = input.settings ?? defaultRoomSettings();
 
@@ -76,6 +99,7 @@ export async function createRoom(userId: string, input: z.infer<typeof createRoo
             gameMode: input.gameMode,
             visibility: input.visibility,
             allowSpectators: input.allowSpectators,
+            roomKey: input.visibility === 'PRIVATE' && input.roomKey ? input.roomKey.trim() : null,
             roleConfig: roleConfig as Prisma.InputJsonValue,
             settings: settings as unknown as Prisma.InputJsonValue,
           },
@@ -93,7 +117,7 @@ export async function createRoom(userId: string, input: z.infer<typeof createRoo
   throw new AppError('CONFLICT', 'Gagal membuat Room ID unik, coba lagi.');
 }
 
-export async function joinRoom(userId: string, code: string) {
+export async function joinRoom(userId: string, code: string, roomKeyInput?: string) {
   const preview = await getRoomByCode(code);
   await assertNotInAnotherRoom(userId, preview.id);
   const events = await prisma.$transaction(async (tx) => {
@@ -102,6 +126,11 @@ export async function joinRoom(userId: string, code: string) {
     const existing = await tx.roomPlayer.findUnique({ where: { roomId_userId: { roomId: room.id, userId } } });
     if (existing) throw new AppError('ALREADY_JOINED', 'Kamu sudah berada di room ini.', { roomCode: room.code });
     assertOpen(room.status);
+    if (room.roomKey && room.roomKey.length > 0 && room.hostId !== userId) {
+      if (!roomKeyInput || roomKeyInput.trim() !== room.roomKey.trim()) {
+        throw new AppError('FORBIDDEN', 'Kunci sandi room privat salah atau belum dimasukkan.');
+      }
+    }
     if (room.status !== 'WAITING') throw new AppError('INVALID_PHASE', 'Game sudah dimulai. Kamu hanya bisa menonton (spectate).');
     if (room._count.players >= room.maxPlayers) throw new AppError('ROOM_FULL', 'Room sudah penuh. Kamu bisa menonton (spectate).');
     await tx.roomSpectator.deleteMany({ where: { userId } });
@@ -182,6 +211,11 @@ export async function updateRoomConfig(hostId: string, code: string, input: z.in
     await lockRoom(tx, preview.id);
     const room = await tx.room.findUniqueOrThrow({ where: { id: preview.id }, include: { _count: { select: { players: true } } } });
     assertOpen(room.status);
+    if (room.roomKey && room.roomKey.length > 0 && room.hostId !== userId) {
+      if (!roomKeyInput || roomKeyInput.trim() !== room.roomKey.trim()) {
+        throw new AppError('FORBIDDEN', 'Kunci sandi room privat salah atau belum dimasukkan.');
+      }
+    }
     if (room.status !== 'WAITING' || room.hasStarted) {
       throw new AppError('INVALID_PHASE', 'Konfigurasi hanya bisa diubah saat room menunggu dan belum pernah dimulai.');
     }
@@ -213,6 +247,11 @@ export async function spectateRoom(userId: string, code: string) {
     await lockRoom(tx, preview.id);
     const room = await tx.room.findUniqueOrThrow({ where: { id: preview.id }, include: { _count: { select: { players: true } } } });
     assertOpen(room.status);
+    if (room.roomKey && room.roomKey.length > 0 && room.hostId !== userId) {
+      if (!roomKeyInput || roomKeyInput.trim() !== room.roomKey.trim()) {
+        throw new AppError('FORBIDDEN', 'Kunci sandi room privat salah atau belum dimasukkan.');
+      }
+    }
     if (!room.allowSpectators) throw new AppError('FORBIDDEN', 'Room ini tidak mengizinkan spectator.');
     const isPlayer = await tx.roomPlayer.findUnique({ where: { roomId_userId: { roomId: room.id, userId } } });
     if (isPlayer) throw new AppError('ALREADY_JOINED', 'Kamu sudah menjadi pemain di room ini.');
@@ -243,7 +282,6 @@ export async function listPublicRooms(userId: string): Promise<LobbyRoom[]> {
   const since = new Date(Date.now() - FINISHED_VISIBLE_MS);
   const rooms = await prisma.room.findMany({
     where: {
-      visibility: 'PUBLIC',
       OR: [{ status: { in: ACTIVE } }, { status: 'FINISHED', finishedAt: { gte: since } }],
     },
     orderBy: { createdAt: 'desc' },
@@ -274,6 +312,8 @@ export async function listPublicRooms(userId: string): Promise<LobbyRoom[]> {
       code: r.code,
       host: r.host.username,
       gameMode: r.gameMode,
+      visibility: r.visibility,
+      hasKey: Boolean(r.roomKey && r.roomKey.length > 0),
       playerCount: r.players.length,
       maxPlayers: r.maxPlayers,
       spectatorCount: r._count.spectators,
@@ -310,6 +350,7 @@ export async function getRoomDetail(userId: string, code: string): Promise<RoomD
   return {
     code: room.code,
     status: room.status,
+    hasKey: Boolean(room.roomKey && room.roomKey.length > 0),
     visibility: room.visibility,
     gameMode: room.gameMode,
     minPlayers: room.minPlayers,

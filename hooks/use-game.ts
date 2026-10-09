@@ -19,5 +19,5 @@ export function useGame(gameId: string, userId: string) {
     return { view, messages };
   }, [gameId]);
 
-  return useLive<Bundle>(fetcher, { channels: [gameChannel(gameId), userChannel(userId)], intervalMs: 2000 });
+  return useLive<Bundle>(fetcher, { channels: [gameChannel(gameId), userChannel(userId)], intervalMs: 1200 });
 }
