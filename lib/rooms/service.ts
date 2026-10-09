@@ -211,11 +211,6 @@ export async function updateRoomConfig(hostId: string, code: string, input: z.in
     await lockRoom(tx, preview.id);
     const room = await tx.room.findUniqueOrThrow({ where: { id: preview.id }, include: { _count: { select: { players: true } } } });
     assertOpen(room.status);
-    if (room.roomKey && room.roomKey.length > 0 && room.hostId !== userId) {
-      if (!roomKeyInput || roomKeyInput.trim() !== room.roomKey.trim()) {
-        throw new AppError('FORBIDDEN', 'Kunci sandi room privat salah atau belum dimasukkan.');
-      }
-    }
     if (room.status !== 'WAITING' || room.hasStarted) {
       throw new AppError('INVALID_PHASE', 'Konfigurasi hanya bisa diubah saat room menunggu dan belum pernah dimulai.');
     }
@@ -247,11 +242,6 @@ export async function spectateRoom(userId: string, code: string) {
     await lockRoom(tx, preview.id);
     const room = await tx.room.findUniqueOrThrow({ where: { id: preview.id }, include: { _count: { select: { players: true } } } });
     assertOpen(room.status);
-    if (room.roomKey && room.roomKey.length > 0 && room.hostId !== userId) {
-      if (!roomKeyInput || roomKeyInput.trim() !== room.roomKey.trim()) {
-        throw new AppError('FORBIDDEN', 'Kunci sandi room privat salah atau belum dimasukkan.');
-      }
-    }
     if (!room.allowSpectators) throw new AppError('FORBIDDEN', 'Room ini tidak mengizinkan spectator.');
     const isPlayer = await tx.roomPlayer.findUnique({ where: { roomId_userId: { roomId: room.id, userId } } });
     if (isPlayer) throw new AppError('ALREADY_JOINED', 'Kamu sudah menjadi pemain di room ini.');
