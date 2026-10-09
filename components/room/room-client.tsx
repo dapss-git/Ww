@@ -232,41 +232,81 @@ function ConfigEditor({ room, onDone }: { room: RoomDetail; onDone: () => void }
   return (
     <div className="space-y-4">
       <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <label className="space-y-1 text-sm text-mute">Minimum Pemain (4 - 20)
-            <input
-              type="number"
-              className="input"
-              min={4}
-              max={20}
-              value={min}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                if (!isNaN(val)) {
-                  setMin(val);
-                  if (val > max) setMax(val);
-                }
-              }}
-            />
-          </label>
-          <label className="space-y-1 text-sm text-mute">Maksimum Pemain (4 - 20)
-            <input
-              type="number"
-              className="input"
-              min={4}
-              max={20}
-              value={max}
-              onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                if (!isNaN(val)) {
-                  setMax(val);
-                  if (val >= 4 && val <= 20) {
-                    setRoles(defaultRoleConfig(val));
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5 rounded-xl border border-white/10 bg-night/40 p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-mute font-medium">Minimum Pemain</span>
+              <span className="text-xs text-mute">Min: 4</span>
+            </div>
+            <div className="flex items-center justify-between gap-3 mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (min > 4) setMin(min - 1);
+                }}
+                className="h-9 w-11 rounded-lg border border-white/15 bg-white/10 text-lg font-bold text-ink hover:bg-white/20 active:scale-95 transition-all select-none"
+              >
+                -
+              </button>
+              <span className="font-display text-xl font-bold text-gold-soft tabular-nums">
+                {min}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (min < 20) {
+                    const next = min + 1;
+                    setMin(next);
+                    if (next > max) {
+                      setMax(next);
+                      setRoles(defaultRoleConfig(next));
+                    }
                   }
-                }
-              }}
-            />
-          </label>
+                }}
+                className="h-9 w-11 rounded-lg border border-white/15 bg-white/10 text-lg font-bold text-ink hover:bg-white/20 active:scale-95 transition-all select-none"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 rounded-xl border border-white/10 bg-night/40 p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-mute font-medium">Maksimum Pemain</span>
+              <span className="text-xs text-mute">Maks: 20</span>
+            </div>
+            <div className="flex items-center justify-between gap-3 mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (max > min) {
+                    const next = max - 1;
+                    setMax(next);
+                    setRoles(defaultRoleConfig(next));
+                  }
+                }}
+                className="h-9 w-11 rounded-lg border border-white/15 bg-white/10 text-lg font-bold text-ink hover:bg-white/20 active:scale-95 transition-all select-none"
+              >
+                -
+              </button>
+              <span className="font-display text-xl font-bold text-gold-soft tabular-nums">
+                {max}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (max < 20) {
+                    const next = max + 1;
+                    setMax(next);
+                    setRoles(defaultRoleConfig(next));
+                  }
+                }}
+                className="h-9 w-11 rounded-lg border border-white/15 bg-white/10 text-lg font-bold text-ink hover:bg-white/20 active:scale-95 transition-all select-none"
+              >
+                +
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

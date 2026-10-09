@@ -158,39 +158,76 @@ export function CreateRoomForm() {
         </div>
       )}
 
-      {/* Pengaturan Pemain */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <label htmlFor="min" className="text-sm text-mute">Minimum Pemain (4 - 20)</label>
-          <input
-            id="min"
-            type="number"
-            min={4}
-            max={20}
-            className="input"
-            value={minPlayers}
-            onChange={(e) => {
-              const val = parseNum(e.target.value, 4);
-              setMin(val);
-              if (val > maxPlayers) setMax(val);
-            }}
-          />
+      {/* Pengaturan Pemain dengan Tombol Stepper (- / +) yang Nyaman di HP */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5 rounded-xl border border-white/10 bg-night/40 p-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-ink">Minimum Pemain</label>
+            <span className="text-xs text-mute">Min: 4</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 mt-1">
+            <button
+              type="button"
+              onClick={() => {
+                if (minPlayers > 4) {
+                  setMin(minPlayers - 1);
+                }
+              }}
+              className="h-10 w-12 rounded-lg border border-white/15 bg-white/10 text-xl font-bold text-ink hover:bg-white/20 active:scale-95 transition-all select-none"
+            >
+              -
+            </button>
+            <span className="font-display text-2xl font-bold text-gold-soft tabular-nums">
+              {minPlayers}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                if (minPlayers < 20) {
+                  const next = minPlayers + 1;
+                  setMin(next);
+                  if (next > maxPlayers) setMax(next);
+                }
+              }}
+              className="h-10 w-12 rounded-lg border border-white/15 bg-white/10 text-xl font-bold text-ink hover:bg-white/20 active:scale-95 transition-all select-none"
+            >
+              +
+            </button>
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <label htmlFor="max" className="text-sm text-mute">Maksimum Pemain (4 - 20)</label>
-          <input
-            id="max"
-            type="number"
-            min={4}
-            max={20}
-            className="input"
-            value={maxPlayers}
-            onChange={(e) => {
-              const val = parseNum(e.target.value, 4);
-              setMax(val);
-              if (val < minPlayers) setMin(val);
-            }}
-          />
+
+        <div className="space-y-1.5 rounded-xl border border-white/10 bg-night/40 p-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-ink">Maksimum Pemain</label>
+            <span className="text-xs text-mute">Maks: 20</span>
+          </div>
+          <div className="flex items-center justify-between gap-3 mt-1">
+            <button
+              type="button"
+              onClick={() => {
+                if (maxPlayers > minPlayers) {
+                  setMax(maxPlayers - 1);
+                }
+              }}
+              className="h-10 w-12 rounded-lg border border-white/15 bg-white/10 text-xl font-bold text-ink hover:bg-white/20 active:scale-95 transition-all select-none"
+            >
+              -
+            </button>
+            <span className="font-display text-2xl font-bold text-gold-soft tabular-nums">
+              {maxPlayers}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                if (maxPlayers < 20) {
+                  setMax(maxPlayers + 1);
+                }
+              }}
+              className="h-10 w-12 rounded-lg border border-white/15 bg-white/10 text-xl font-bold text-ink hover:bg-white/20 active:scale-95 transition-all select-none"
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
 
