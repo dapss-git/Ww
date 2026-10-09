@@ -34,7 +34,7 @@ export default async function MatchPage({ params }: { params: Promise<{ matchId:
         <ul className="mt-6 space-y-2">
           {match.players.map((p) => (
             <li key={p.username} className="panel flex flex-wrap items-center justify-between gap-2 p-3">
-              <Link href={`/@${p.username}`} className="font-medium hover:text-gold-soft">@{p.username}</Link>
+              <Link href={`/profile/${p.username}`} className="font-medium hover:text-gold-soft">@{p.username}</Link>
               <span className="flex flex-wrap items-center gap-1.5">
                 <Badge tone={p.team === 'WEREWOLF' ? 'crimson' : 'gold'}>{ROLES[p.role as RoleId].name}</Badge>
                 <Badge>{TEAM_LABEL[p.team as TeamId]}</Badge>

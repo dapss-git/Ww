@@ -30,7 +30,7 @@ export function Navbar({ username }: { username: string | null }) {
                 Lobby
               </LinkButton>
               <Link
-                href={`/@${username}`}
+                href={`/profile/${username}`}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-ink hover:border-gold/40 hover:text-gold-soft transition-colors"
               >
                 <User className="h-3.5 w-3.5 text-purple-soft" />
@@ -85,7 +85,7 @@ export function Navbar({ username }: { username: string | null }) {
           {username ? (
             <div className="space-y-2 pt-1 border-t border-white/10">
               <Link
-                href={`/@${username}`}
+                href={`/profile/${username}`}
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-ink hover:border-gold/40"
               >

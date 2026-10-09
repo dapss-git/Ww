@@ -235,7 +235,7 @@ export function OwnerDashboard({ ownerName }: { ownerName: string }) {
           {(users ?? data?.recentUsers.map((u) => ({ ...u, lastSeenAt: null, matches: 0 })) ?? []).map((u) => (
             <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-night/50 p-3 text-sm">
               <span className="flex items-center gap-2">
-                <a href={`/@${u.username}`} className="font-medium hover:text-gold-soft">@{u.username}</a>
+                <a href={`/profile/${u.username}`} className="font-medium hover:text-gold-soft">@{u.username}</a>
                 {u.disabled && <Badge tone="crimson">Nonaktif</Badge>}
                 <span className="text-xs text-mute">{formatDateTime(u.createdAt)}</span>
               </span>

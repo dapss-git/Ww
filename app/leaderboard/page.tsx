@@ -99,7 +99,7 @@ export default async function LeaderboardPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <Link
-                            href={`/@${player.username}`}
+                            href={`/profile/${player.username}`}
                             className="font-medium text-ink hover:text-gold-soft hover:underline truncate"
                           >
                             @{player.username}

@@ -140,7 +140,7 @@ export function RoomClient({ code, userId }: { code: string; userId: string }) {
             <li key={p.userId} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-night/50 px-3 py-2">
               <span className="flex min-w-0 items-center gap-2">
                 {p.isHost && <Crown className="h-4 w-4 shrink-0 text-gold" aria-label="Host" />}
-                <Link href={`/@${p.username}`} className="truncate text-sm hover:text-gold-soft">@{p.username}{p.userId === userId ? ' (kamu)' : ''}</Link>
+                <Link href={`/profile/${p.username}`} className="truncate text-sm hover:text-gold-soft">@{p.username}{p.userId === userId ? ' (kamu)' : ''}</Link>
               </span>
               <span className="flex items-center gap-2">
                 <Badge tone={p.ready ? 'green' : 'neutral'}>{p.ready ? 'Ready' : 'Belum'}</Badge>

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
-import { Eye, LogIn, Plus, Users, Lock, KeyRound } from 'lucide-react';
+import { Eye, LogIn, Plus, Users, Lock, KeyRound, MessageSquare, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { api, ApiClientError } from '@/lib/client/api';
@@ -22,6 +22,35 @@ const STATUS_TONE: Record<string, 'green' | 'gold' | 'purple' | 'neutral'> = {
 };
 
 export function LobbyClient({ username }: { username: string }) {
+  // Polling chat publik lobby
+  const fetchChat = useCallback(async () => {
+    try {
+      const res = await api<{ messages: { id: string; username: string; content: string }[] }>('/api/lobby/chat');
+      setChatMessages(res.messages);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchChat();
+    const t = setInterval(fetchChat, 2500);
+    return () => clearInterval(t);
+  }, [fetchChat]);
+
+  async function sendLobbyChat(e: React.FormEvent) {
+    e.preventDefault();
+    const txt = chatText.trim();
+    if (!txt) return;
+    setChatText('');
+    try {
+      await api('/api/lobby/chat', { method: 'POST', json: { content: txt } });
+      await fetchChat();
+    } catch {
+      setChatText(txt);
+    }
+  }
+
   const router = useRouter();
   const [joinCode, setJoinCode] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
@@ -29,6 +58,9 @@ export function LobbyClient({ username }: { username: string }) {
   const [showCreate, setShowCreate] = useState(false);
   const [keyPromptRoom, setKeyPromptRoom] = useState<string | null>(null);
   const [inputKey, setInputKey] = useState('');
+  const [chatMessages, setChatMessages] = useState<{ id: string; username: string; content: string }[]>([]);
+  const [chatText, setChatText] = useState('');
+  
 
   const fetcher = useCallback(async () => (await api<{ rooms: LobbyRoom[] }>('/api/rooms')).rooms, []);
   const { data: rooms, loading } = useLive<LobbyRoom[]>(fetcher, { channels: [LOBBY_CHANNEL], intervalMs: 5000 });
@@ -70,7 +102,7 @@ export function LobbyClient({ username }: { username: string }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl text-gold-soft">Lobby</h1>
-          <p className="mt-1 text-sm text-mute">Halo, <Link href={`/@${username}`} className="text-ink hover:underline">@{username}</Link>. Pilih room atau buat desamu sendiri.</p>
+          <p className="mt-1 text-sm text-mute">Halo, <Link href={`/profile/${username}`} className="text-ink hover:underline">@{username}</Link>. Pilih room atau buat desamu sendiri.</p>
         </div>
         <Button onClick={() => setShowCreate((v) => !v)} variant={showCreate ? 'secondary' : 'primary'}>
           <Plus className="h-4 w-4" aria-hidden /> Buat room
@@ -93,6 +125,46 @@ export function LobbyClient({ username }: { username: string }) {
       </form>
 
       {error && <p role="alert" className="rounded-lg border border-crimson/50 bg-crimson/10 px-3 py-2 text-sm text-crimson-soft">{error}</p>}
+
+      
+      {/* Obrolan Publik Lobby (Bisa ngobrol santai sambil nunggu pemain) */}
+      <section className="panel p-4 space-y-3 border-white/10 bg-surface/75 backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <h2 className="font-display text-sm text-gold-soft flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" /> Obrolan Publik Desa (Lobby Chat)
+          </h2>
+          <span className="text-[11px] text-mute">Terbuka untuk semua pemain</span>
+        </div>
+
+        <div className="h-44 overflow-y-auto space-y-2 p-2 scroll-thin rounded-xl bg-night/50 border border-white/5">
+          {chatMessages.length === 0 ? (
+            <p className="text-xs text-mute text-center py-6">Belum ada obrolan. Sapa pemain lain yang sedang online!</p>
+          ) : (
+            chatMessages.map((m) => (
+              <div key={m.id} className="text-xs break-words">
+                <Link href={`/profile/${m.username}`} className="font-bold text-gold-soft hover:underline">
+                  @{m.username}
+                </Link>
+                <span className="text-mute">: </span>
+                <span className="text-ink/90">{m.content}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        <form onSubmit={sendLobbyChat} className="flex gap-2">
+          <input
+            className="input text-xs"
+            placeholder="Ketik obrolan di lobby..."
+            value={chatText}
+            onChange={(e) => setChatText(e.target.value)}
+            maxLength={200}
+          />
+          <Button type="submit" size="sm" disabled={!chatText.trim()}>
+            <Send className="h-3.5 w-3.5" />
+          </Button>
+        </form>
+      </section>
 
       <section>
         <h2 className="mb-3 font-display text-xl">Room publik</h2>

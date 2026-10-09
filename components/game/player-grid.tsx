@@ -85,7 +85,7 @@ export function PlayerGrid({ view, selectable, selected = [], onSelect }: Props)
             {/* Username clickable to Profile */}
             <div className="w-full truncate z-20">
               <Link
-                href={`/@${p.username}`}
+                href={`/profile/${p.username}`}
                 onClick={(e) => e.stopPropagation()}
                 className="font-medium text-xs text-ink hover:text-gold-soft hover:underline truncate block"
                 title={`Lihat profil @${p.username}`}
