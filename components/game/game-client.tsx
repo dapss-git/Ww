@@ -214,9 +214,7 @@ export function GameClient({ gameId, userId }: { gameId: string; userId: string 
     }
   }
 
-  if (loading && !data) {
-    return <div className="grid min-h-dvh place-items-center text-mute">Memuat permainan...</div>;
-  }
+  if (loading && !data) return null;
   if (!data) {
     return (
       <div className="grid min-h-dvh place-items-center px-4">

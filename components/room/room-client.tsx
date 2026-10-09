@@ -43,7 +43,7 @@ export function RoomClient({ code, userId }: { code: string; userId: string }) {
     }
   }
 
-  if (loading && !room) return <p className="text-mute">Memuat room...</p>;
+  if (loading && !room) return null;
   if (error && !room) {
     return (
       <div className="panel max-w-md space-y-3 p-6">

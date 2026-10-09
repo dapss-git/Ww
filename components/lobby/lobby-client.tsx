@@ -96,9 +96,7 @@ export function LobbyClient({ username }: { username: string }) {
 
       <section>
         <h2 className="mb-3 font-display text-xl">Room publik</h2>
-        {loading && !rooms ? (
-          <p className="text-sm text-mute">Memuat room...</p>
-        ) : !rooms || rooms.length === 0 ? (
+        {!rooms || rooms.length === 0 ? (
           <p className="panel p-5 text-sm text-mute">Belum ada room publik. Buat satu dan undang temanmu.</p>
         ) : (
           <ul className="space-y-2">
