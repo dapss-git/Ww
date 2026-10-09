@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { ok } from '@/lib/api/response';
 import { route } from '@/lib/api/handler';
@@ -7,6 +6,8 @@ import { createRoom } from '@/lib/rooms/service';
 import { startGame } from '@/lib/game/service';
 import { hashPassword } from '@/lib/auth/password';
 import { randomString } from '@/lib/security/random';
+
+const ALPHANUM = 'abcdefghijklmnopqrstuvwxyz0123456789';
 
 export const POST = route(async () => {
   const owner = await requireOwner();
@@ -26,7 +27,7 @@ export const POST = route(async () => {
   const dummyPass = await hashPassword('BotPassword123!');
 
   for (const name of botNames) {
-    const uname = `${name.toLowerCase()}_${randomString(3).toLowerCase()}`;
+    const uname = `${name.toLowerCase()}_${randomString(3, ALPHANUM).toLowerCase()}`;
     const bot = await prisma.user.create({
       data: {
         username: uname,
