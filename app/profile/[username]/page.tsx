@@ -116,7 +116,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                 <span className="font-medium text-xs text-ink">Gelar: Pemenang Sejati</span>
                 <span className="text-[10px] font-bold text-gold-soft">{s.wins >= 10 ? 'SELESAI (+500 Koin)' : `${s.wins}/10 Win`}</span>
               </div>
-              <p className="text-[11px] text-mute mt-1">Raih 10 kemenangan untuk mengklaim gelar 'Pemenang Sejati'.</p>
+              <p className="text-[11px] text-mute mt-1">Raih 10 kemenangan untuk mengklaim gelar &apos;Pemenang Sejati&apos;.</p>
             </div>
           </div>
         </section>

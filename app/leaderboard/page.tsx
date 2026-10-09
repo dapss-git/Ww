@@ -3,7 +3,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Sky } from '@/components/layout/sky';
 import { getCurrentUser } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
-import { Trophy, Medal, Award, Flame, Coins, Crown, Sparkles } from 'lucide-react';
+import { Trophy, Medal, Coins, Crown, Sparkles } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
