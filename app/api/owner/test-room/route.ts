@@ -1,0 +1,65 @@
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { ok } from '@/lib/api/response';
+import { route } from '@/lib/api/handler';
+import { requireOwner } from '@/lib/auth/guards';
+import { createRoom } from '@/lib/rooms/service';
+import { startGame } from '@/lib/game/service';
+import { hashPassword } from '@/lib/auth/password';
+import { randomString } from '@/lib/security/random';
+
+export const POST = route(async () => {
+  const owner = await requireOwner();
+
+  // 1. Buat room test khusus
+  const room = await createRoom(owner.id, {
+    minPlayers: 4,
+    maxPlayers: 6,
+    gameMode: 'CLASSIC',
+    visibility: 'PRIVATE',
+    allowSpectators: true,
+  });
+
+  // 2. Buat 3 akun dummy bot untuk melengkapi room
+  const botNames = ['Bot_Alpha', 'Bot_Bravo', 'Bot_Charlie'];
+  const botUsers = [];
+  const dummyPass = await hashPassword('BotPassword123!');
+
+  for (const name of botNames) {
+    const uname = `${name.toLowerCase()}_${randomString(3).toLowerCase()}`;
+    const bot = await prisma.user.create({
+      data: {
+        username: uname,
+        passwordHash: dummyPass,
+        bio: 'Bot testing otomatis',
+      },
+    });
+    botUsers.push(bot);
+
+    // Join room & set ready
+    await prisma.roomPlayer.create({
+      data: {
+        roomId: room.id,
+        userId: bot.id,
+        ready: true,
+      },
+    });
+  }
+
+  // Set owner ready
+  await prisma.roomPlayer.update({
+    where: { roomId_userId: { roomId: room.id, userId: owner.id } },
+    data: { ready: true },
+  });
+
+  // 3. Langsung mulai game untuk verifikasi engine
+  const game = await startGame(owner.id, room.id);
+
+  return ok({
+    success: true,
+    message: 'Test mode aktif! Room & Bot berhasil disimulasikan.',
+    roomCode: room.code,
+    gameId: game.gameId,
+    botCount: botUsers.length,
+  });
+});
