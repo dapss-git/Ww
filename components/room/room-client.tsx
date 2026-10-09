@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Check, Copy, Crown, Eye, Share2, UserX } from 'lucide-react';
+import { Check, Copy, Crown, Eye, Share2, UserX, MessageSquare, Send, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { api, ApiClientError } from '@/lib/client/api';
@@ -21,6 +21,60 @@ export function RoomClient({ code, userId }: { code: string; userId: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [roomChat, setRoomChat] = useState<{ id: string; username: string; content: string }[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [dismissing, setDismissing] = useState(false);
+
+  // Polling room chat
+  useEffect(() => {
+    let active = true;
+    const fetchChat = async () => {
+      try {
+        const res = await api<{ messages: { id: string; username: string; content: string }[] }>(`/api/rooms/${code}/chat`);
+        if (active) setRoomChat(res.messages);
+      } catch {}
+    };
+    void fetchChat();
+    const interval = setInterval(fetchChat, 2000);
+    return () => { active = false; clearInterval(interval); };
+  }, [code]);
+
+  async function sendRoomChat(e: React.FormEvent) {
+    e.preventDefault();
+    const text = chatInput.trim();
+    if (!text) return;
+
+    // 0ms Optimistic UI update: langsung muncul seketika di layar!
+    const tempMsg = {
+      id: `opt-${Date.now()}`,
+      username: room?.players.find(p => p.userId === userId)?.username || 'Kamu',
+      content: text,
+    };
+    setRoomChat((prev) => [...prev, tempMsg]);
+    setChatInput('');
+
+    try {
+      await api(`/api/rooms/${code}/chat`, { method: 'POST', json: { content: text } });
+    } catch {
+      // rollback if failed
+      setRoomChat((prev) => prev.filter(m => m.id !== tempMsg.id));
+      setChatInput(text);
+    }
+  }
+
+  async function dismissRoom() {
+    if (!confirm('YAKIN INGIN MEMBUBARKAN ROOM? Seluruh pemain akan dikeluarkan dan room akan ditutup.')) return;
+    setDismissing(true);
+    try {
+      await api(`/api/rooms/${code}/dismiss`, { method: 'POST' });
+      router.replace('/lobby');
+    } catch (e) {
+      alert(e instanceof ApiClientError ? e.message : 'Gagal membubarkan room.');
+    } finally {
+      setDismissing(false);
+    }
+  }
+
 
   // Masuk otomatis ke game saat game dibuat (pemain maupun spectator).
   useEffect(() => {
@@ -92,7 +146,17 @@ export function RoomClient({ code, userId }: { code: string; userId: string }) {
             <Badge><Eye className="h-3 w-3" aria-hidden /> {room.spectatorCount} penonton</Badge>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {isHost && (
+            <button
+              type="button"
+              disabled={dismissing}
+              onClick={dismissRoom}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-crimson/50 bg-crimson/20 text-xs font-semibold text-crimson-soft hover:bg-crimson/30 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Bubarkan Room
+            </button>
+          )}
           <Button variant="secondary" size="sm" onClick={copyId}>{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied ? 'Disalin' : 'Salin ID'}</Button>
           <Button variant="secondary" size="sm" onClick={share}><Share2 className="h-4 w-4" /> Bagikan</Button>
         </div>
@@ -129,6 +193,44 @@ export function RoomClient({ code, userId }: { code: string; userId: string }) {
           <Button variant="secondary" loading={busy === 'unspectate'} onClick={() => act('unspectate', () => api(`/api/rooms/${room.code}/spectate`, { method: 'DELETE' }), () => router.push('/lobby'))}>Berhenti menonton</Button>
         </div>
       )}
+
+      
+      {/* Obrolan Khusus Room (Chat tanpa delay langsung muncul) */}
+      <section className="panel p-4 space-y-3 border-white/10 bg-surface/75 backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <h2 className="font-display text-sm text-gold-soft flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" /> Obrolan Room ({room.code})
+          </h2>
+          <span className="text-[11px] text-mute">Obrolan khusus pemain di room ini</span>
+        </div>
+
+        <div className="h-40 overflow-y-auto space-y-2 p-2 scroll-thin rounded-xl bg-night/50 border border-white/5">
+          {roomChat.length === 0 ? (
+            <p className="text-xs text-mute text-center py-6">Belum ada obrolan di room. Mulai obrolan dengan pemain lain!</p>
+          ) : (
+            roomChat.map((m) => (
+              <div key={m.id} className="text-xs break-words">
+                <span className="font-bold text-gold-soft">@{m.username}</span>
+                <span className="text-mute">: </span>
+                <span className="text-ink/90">{m.content}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        <form onSubmit={sendRoomChat} className="flex gap-2">
+          <input
+            className="input text-xs"
+            placeholder="Tulis pesan ke pemain lain di room ini..."
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            maxLength={200}
+          />
+          <Button type="submit" size="sm" disabled={!chatInput.trim()}>
+            <Send className="h-3.5 w-3.5" />
+          </Button>
+        </form>
+      </section>
 
       <section className="panel p-5">
         <div className="mb-3 flex items-center justify-between">
@@ -169,6 +271,44 @@ export function RoomClient({ code, userId }: { code: string; userId: string }) {
             <Button variant="ghost" loading={busy === 'leave'} onClick={() => act('leave', () => api(`/api/rooms/${room.code}/leave`, { method: 'POST' }), () => router.push('/lobby'))}>Keluar room</Button>
           </div>
         )}
+      </section>
+
+      
+      {/* Obrolan Khusus Room (Chat tanpa delay langsung muncul) */}
+      <section className="panel p-4 space-y-3 border-white/10 bg-surface/75 backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <h2 className="font-display text-sm text-gold-soft flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" /> Obrolan Room ({room.code})
+          </h2>
+          <span className="text-[11px] text-mute">Obrolan khusus pemain di room ini</span>
+        </div>
+
+        <div className="h-40 overflow-y-auto space-y-2 p-2 scroll-thin rounded-xl bg-night/50 border border-white/5">
+          {roomChat.length === 0 ? (
+            <p className="text-xs text-mute text-center py-6">Belum ada obrolan di room. Mulai obrolan dengan pemain lain!</p>
+          ) : (
+            roomChat.map((m) => (
+              <div key={m.id} className="text-xs break-words">
+                <span className="font-bold text-gold-soft">@{m.username}</span>
+                <span className="text-mute">: </span>
+                <span className="text-ink/90">{m.content}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        <form onSubmit={sendRoomChat} className="flex gap-2">
+          <input
+            className="input text-xs"
+            placeholder="Tulis pesan ke pemain lain di room ini..."
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            maxLength={200}
+          />
+          <Button type="submit" size="sm" disabled={!chatInput.trim()}>
+            <Send className="h-3.5 w-3.5" />
+          </Button>
+        </form>
       </section>
 
       <section className="panel p-5">
