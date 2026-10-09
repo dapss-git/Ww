@@ -13,13 +13,15 @@ export const POST = route(async () => {
   const owner = await requireOwner();
 
   // 1. Buat room test khusus
-  const room = await createRoom(owner.id, {
+  const created = await createRoom(owner.id, {
     minPlayers: 4,
     maxPlayers: 6,
     gameMode: 'CLASSIC',
     visibility: 'PRIVATE',
     allowSpectators: true,
   });
+
+  const room = await prisma.room.findUniqueOrThrow({ where: { code: created.code } });
 
   // 2. Buat 3 akun dummy bot untuk melengkapi room
   const botNames = ['Bot_Alpha', 'Bot_Bravo', 'Bot_Charlie'];
