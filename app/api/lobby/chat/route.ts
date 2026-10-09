@@ -10,25 +10,38 @@ const sendSchema = z.object({
   content: z.string().trim().min(1, 'Pesan tidak boleh kosong').max(200, 'Maks 200 karakter'),
 });
 
+interface LobbyRow {
+  id: string;
+  userId: string;
+  username: string;
+  content: string;
+  createdAt: Date;
+}
+
 export const GET = route(async () => {
   await requireUser();
-  const messages = await (prisma as any).lobbyMessage.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 40,
-  });
-  return ok({ messages: messages.reverse() });
+  try {
+    const messages = await prisma.$queryRaw<LobbyRow[]>`
+      SELECT id, "userId", username, content, "createdAt"
+      FROM "LobbyMessage"
+      ORDER BY "createdAt" DESC
+      LIMIT 40
+    `;
+    return ok({ messages: messages.reverse() });
+  } catch {
+    return ok({ messages: [] });
+  }
 });
 
 export const POST = route(async (req: NextRequest) => {
   const user = await requireUser();
   const body = await parseBody(req, sendSchema);
-  const created = await (prisma as any).lobbyMessage.create({
-    data: {
-      id: randomString(20, 'abcdefghijklmnopqrstuvwxyz0123456789'),
-      userId: user.id,
-      username: user.username,
-      content: body.content,
-    },
-  });
-  return ok({ message: created }, { status: 201 });
+  const id = randomString(20, 'abcdefghijklmnopqrstuvwxyz0123456789');
+
+  await prisma.$executeRaw`
+    INSERT INTO "LobbyMessage" (id, "userId", username, content, "createdAt")
+    VALUES (${id}, ${user.id}, ${user.username}, ${body.content}, NOW())
+  `;
+
+  return ok({ message: { id, userId: user.id, username: user.username, content: body.content } }, { status: 201 });
 });

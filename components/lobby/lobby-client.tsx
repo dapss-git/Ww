@@ -62,7 +62,14 @@ export function LobbyClient({ username }: { username: string }) {
   const [chatText, setChatText] = useState('');
   
 
-  const fetcher = useCallback(async () => (await api<{ rooms: LobbyRoom[] }>('/api/rooms')).rooms, []);
+  const fetcher = useCallback(async () => {
+    try {
+      const res = await api<{ rooms: LobbyRoom[] }>('/api/rooms');
+      return res.rooms || [];
+    } catch {
+      return [];
+    }
+  }, []);
   const { data: rooms, loading } = useLive<LobbyRoom[]>(fetcher, { channels: [LOBBY_CHANNEL], intervalMs: 5000 });
 
   async function enter(code: string, mode: 'join' | 'spectate', key?: string) {
