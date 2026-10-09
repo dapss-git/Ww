@@ -8,8 +8,17 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Lobby' };
 
 export default async function LobbyPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect('/login?next=/lobby');
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {
+    redirect('/login?next=/lobby');
+  }
+
+  if (!user) {
+    redirect('/login?next=/lobby');
+  }
+
   return (
     <>
       <Sky />
