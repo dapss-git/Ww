@@ -27,7 +27,7 @@ const ENDPOINTS: { group: string; icon: any; items: ApiEndpoint[] }[] = [
         desc: 'Login instan tamu (Cocok untuk bot WA yang tidak perlu password). Mengembalikan cookie ww_session.',
         auth: 'Public',
         body: JSON.stringify({ nickname: 'BotWhatsApp' }, null, 2),
-        response: JSON.stringify({ success: true, data: { user: y id: 'cmv...', username: 'botwhatsapp_abc1' }, isGuest: true, nickname: 'BotWhatsApp' } }, null, 2),
+        response: JSON.stringify({ success: true, data: { user: { id: 'cmv...', username: 'botwhatsapp_abc1' }, isGuest: true, nickname: 'BotWhatsApp' } }, null, 2),
       },
       {
         method: 'POST',
@@ -43,14 +43,14 @@ const ENDPOINTS: { group: string; icon: any; items: ApiEndpoint[] }[] = [
         desc: 'Pendaftaran akun baru permanen.',
         auth: 'Public',
         body: JSON.stringify({ username: 'player1', password: 'password123', confirmPassword: 'password123' }, null, 2),
-        response: JSON.stringify({ success: true, data: { user: y id: 'cmv...', username: 'player1' } } }, null, 2),
+        response: JSON.stringify({ success: true, data: { user: { id: 'cmv...', username: 'player1' } } }, null, 2),
       },
       {
         method: 'GET',
         path: '/api/auth/me',
         desc: 'Cek status sesi pengguna saat ini.',
         auth: 'User',
-        response: JSON.stringify({ success: true, data: { user: y id: 'cmv...', username: 'player1' } } }, null, 2),
+        response: JSON.stringify({ success: true, data: { user: { id: 'cmv...', username: 'player1' } } }, null, 2),
       },
       {
         method: 'POST',
@@ -70,7 +70,7 @@ const ENDPOINTS: { group: string; icon: any; items: ApiEndpoint[] }[] = [
         path: '/api/rooms',
         desc: 'Ambil daftar room publik yang sedang buka di lobi.',
         auth: 'User',
-        response: JSON.stringify({ success: true, data: { rooms: [{ id: 'cmv...', code: 'WOLF-XYZ12', host: y username: 'host1' }, playerCount: 3, maxPlayers: 10, status: 'LOBBY' }] } }, null, 2),
+        response: JSON.stringify({ success: true, data: { rooms: [{ id: 'cmv...', code: 'WOLF-XYZ12', host: { username: 'host1' }, playerCount: 3, maxPlayers: 10, status: 'LOBBY' }] } }, null, 2),
       },
       {
         method: 'POST',
