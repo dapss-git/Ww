@@ -404,7 +404,7 @@ async function startBot() {
                             {ep.method}
                           </span>
                           <code className="text-sm font-mono text-ink font-semibold">{ep.path}</code>
-                          <Badge tone{{ep.auth === 'Owner' ? 'crimson' : ep.auth === 'User' ? 'purple' : 'neutral'}>
+                          <Badge tone={ep.auth === 'Owner' ? 'crimson' : ep.auth === 'User' ? 'purple' : 'neutral'}>
                             {ep.auth}
                           </Badge>
                         </div>
